@@ -1,0 +1,21 @@
+[project]
+name = "family"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=5.2,<6.0",
+    "jupyter>=1.1.1",
+    "requests>=2.32.5",
+    "python-decouple",
+    "gunicorn>=25.1.0",
+    "dj-database-url",
+    "psycopg[binary]",
+    "whitenoise",
+    "django-polymorphic",
+    "Pillow",
+    'django-summernote',
+    'django-tailwind[reload]',
+    'Cookiecutter',
+]
