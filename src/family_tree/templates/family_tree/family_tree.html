@@ -1,0 +1,48 @@
+{% extends "recipes/base.html" %}
+
+{% block content %}
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Family Tree</h1>
+      <p class="text-gray-600">Browse family groups, members, and relationships.</p>
+    </div>
+  </div>
+
+  {% for family in families %}
+    <section class="bg-white border border-gray-300 rounded-lg p-6 mb-4 shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 class="text-xl font-semibold mb-1">{{ family.name }}</h3>
+          {% if family.description %}
+            <p class="text-gray-600 mb-0">{{ family.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for member in family.members.all %}
+          <div class="border border-gray-200 rounded p-4">
+            <h5 class="font-semibold mb-1">{{ member.display_name|default:member.user.username }}</h5>
+            <p class="text-gray-600 mb-2">User: {{ member.user.username }}</p>
+
+            {% if member.parents.all %}
+              <p class="mb-1"><strong>Parents:</strong> {{ member.parents.all|join:", " }}</p>
+            {% endif %}
+            {% if member.spouses.all %}
+              <p class="mb-1"><strong>Spouses:</strong> {{ member.spouses.all|join:", " }}</p>
+            {% endif %}
+            {% if member.birth_date %}
+              <p class="mb-0"><strong>Born:</strong> {{ member.birth_date }}</p>
+            {% endif %}
+          </div>
+        {% empty %}
+          <div class="col-span-full">
+            <p class="text-gray-500">No members have been added to this family yet.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% empty %}
+    <p class="text-gray-500">No family groups created yet.</p>
+  {% endfor %}
+{% endblock %}

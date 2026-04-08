@@ -1,0 +1,24 @@
+{% extends "recipes/base.html" %}
+
+{% block content %}
+  <h2 class="text-2xl font-bold mb-4">Recipes</h2>
+
+  {% for recipe in recipes %}
+    <article class="bg-white border border-gray-300 rounded-lg p-6 mb-4 shadow-sm">
+      <h3 class="text-xl font-semibold mb-2"><a class="text-blue-600 hover:text-blue-800" href="{% url 'recipes:recipe_detail' recipe.pk %}">{{ recipe.title }}</a></h3>
+      <p class="text-gray-600 mb-2">by {{ recipe.owner.username }} · {{ recipe.created_at|date:"M j, Y" }}</p>
+      {% if recipe.photo %}
+        <img class="w-full h-auto rounded mb-4" src="{{ recipe.photo.url }}" alt="{{ recipe.title }}">
+      {% endif %}
+      <p class="mb-2">{{ recipe.description }}</p>
+
+      {% if recipe.can_view_details_for_user %}
+        <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">You can view ingredients and instructions</span>
+      {% elif recipe.visibility != recipe.VISIBILITY_PUBLIC %}
+        <span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm">Restricted</span>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p class="text-gray-500">No recipes yet.</p>
+  {% endfor %}
+{% endblock %}

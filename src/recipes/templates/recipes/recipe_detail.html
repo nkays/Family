@@ -1,0 +1,34 @@
+{% extends "recipes/base.html" %}
+
+{% block content %}
+  <article class="bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
+    <h2 class="text-2xl font-bold mb-2">{{ recipe.title }}</h2>
+    <p class="text-gray-600 mb-4">by {{ recipe.owner.username }} · {{ recipe.created_at|date:"M j, Y" }}</p>
+
+    {% if recipe.photo %}
+      <img class="w-full h-auto rounded mb-4" src="{{ recipe.photo.url }}" alt="{{ recipe.title }}">
+    {% endif %}
+
+    <section class="mb-4">
+      <h3 class="text-lg font-semibold mb-2">Description</h3>
+      <p>{{ recipe.description }}</p>
+    </section>
+
+    {% if can_view_details %}
+      <section class="mb-4">
+        <h3 class="text-lg font-semibold mb-2">Ingredients</h3>
+        <pre class="bg-gray-100 p-4 rounded">{{ recipe.ingredients }}</pre>
+      </section>
+
+      <section class="mb-4">
+        <h3 class="text-lg font-semibold mb-2">Instructions</h3>
+        <pre class="bg-gray-100 p-4 rounded">{{ recipe.instructions }}</pre>
+      </section>
+    {% else %}
+      <section>
+        <h3 class="text-lg font-semibold mb-2">Ingredients and instructions are restricted</h3>
+        <p>This recipe is restricted based on the owner’s visibility settings. Log in as a permitted family member to view the full details.</p>
+      </section>
+    {% endif %}
+  </article>
+{% endblock %}

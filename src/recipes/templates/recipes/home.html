@@ -1,0 +1,22 @@
+{% extends "recipes/base.html" %}
+
+{% block content %}
+  <h1 class="text-3xl font-bold mb-6">Welcome to Family Cookbook</h1>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <section class="bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
+      <h2 class="text-xl font-semibold mb-4">Recent Recipes</h2>
+      <ul class="space-y-2">
+        {% for recipe in recent_recipes %}
+          <li><a href="{% url 'recipes:recipe_detail' recipe.pk %}" class="text-blue-600 hover:text-blue-800">{{ recipe.title }}</a> by {{ recipe.owner.username }}</li>
+        {% empty %}
+          <li class="text-gray-500">No recipes yet.</li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'recipes:recipe_list' %}" class="text-blue-600 hover:text-blue-800 mt-4 block">View all recipes →</a>
+    </section>
+    <section class="bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
+      <h2 class="text-xl font-semibold mb-4">Family Groups</h2>
+      <a href="{% url 'family_tree:tree' %}" class="text-blue-600 hover:text-blue-800">View family tree →</a>
+    </section>
+  </div>
+{% endblock %}
