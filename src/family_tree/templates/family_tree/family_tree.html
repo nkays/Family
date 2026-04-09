@@ -1,48 +1,721 @@
 {% extends "recipes/base.html" %}
 
 {% block content %}
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-2xl font-bold">Family Tree</h1>
-      <p class="text-gray-600">Browse family groups, members, and relationships.</p>
-    </div>
+<style>
+  .tree-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+  }
+
+  .tree-header {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .tree-header h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+  }
+
+  .tree-header p {
+    color: #6b7280;
+    margin-top: 0.5rem;
+  }
+
+  /* Unified tree visualization */
+  .tree-viz-container {
+    position: relative;
+    overflow-x: auto;
+    padding: 2rem;
+    min-height: 700px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .tree-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .generations-layout {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    padding: 3rem 2rem;
+  }
+
+  .generation-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 0;
+    border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+  }
+
+  .generation-row:last-child {
+    border-bottom: none;
+  }
+
+  .generation-label {
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Smaller member card */
+  .member-card {
+    background: white;
+    border-radius: 10px;
+    padding: 0.9rem;
+    width: 180px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #e5e7eb;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .member-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  }
+
+  .member-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+  }
+
+  .member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: white;
+    margin-bottom: 0.75rem;
+  }
+
+  .avatar-male {
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+  }
+
+  .avatar-female {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+  }
+
+  .avatar-other {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  }
+
+  .member-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.2rem;
+    word-break: break-word;
+    line-height: 1.2;
+  }
+
+  .member-username {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+  }
+
+  .member-info {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: #374151;
+  }
+
+  .info-item {
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .info-label {
+    font-weight: 600;
+    color: #1f2937;
+    min-width: 45px;
+  }
+
+  .info-value {
+    color: #374151;
+    flex: 1;
+    font-size: 0.7rem;
+  }
+
+  .member-relationships {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.7rem;
+  }
+
+  .rel-badge {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 0.12rem 0.35rem;
+    border-radius: 3px;
+    font-weight: 600;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+  }
+
+  .member-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 0.35rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .action-btn:hover {
+    background: #2563eb;
+  }
+
+  /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+
+  .modal-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .modal-close:hover {
+    color: #1f2937;
+  }
+
+  .modal-body {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .modal-avatar-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .modal-info {
+    flex: 1;
+  }
+
+  .modal-info-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-info-title {
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .modal-info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .modal-info-label {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .modal-info-value {
+    color: #1f2937;
+    text-align: right;
+  }
+
+  .relationships-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .relationship-item {
+    background: #f3f4f6;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+
+  .relationship-type {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .relationship-name {
+    color: #6b7280;
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .tree-viz-container {
+      min-height: 500px;
+    }
+
+    .member-card {
+      width: 160px;
+    }
+
+    .modal-body {
+      flex-direction: column;
+    }
+
+    .generation-label {
+      position: static;
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+<div class="tree-container">
+  <div class="tree-header">
+    <h1>Family Tree</h1>
+    <p>All family members organized by generation with marriage and family connections.</p>
   </div>
 
-  {% for family in families %}
-    <section class="bg-white border border-gray-300 rounded-lg p-6 mb-4 shadow-sm">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h3 class="text-xl font-semibold mb-1">{{ family.name }}</h3>
-          {% if family.description %}
-            <p class="text-gray-600 mb-0">{{ family.description }}</p>
-          {% endif %}
-        </div>
-      </div>
+  {% if generations %}
+    <div class="tree-viz-container" id="tree-container">
+      <svg class="tree-svg" id="tree-svg"></svg>
+      
+      <div class="generations-layout" id="generations-layout">
+        {% for generation, members in generations %}
+          <div class="generation-row" data-generation="{{ generation }}">
+            <div class="generation-label">
+              {% if generation == 0 %}
+                🌳 Generation 0 - Ancestors
+              {% elif generation == 1 %}
+                👨‍👩 Generation 1
+              {% elif generation == 2 %}
+                👶 Generation 2
+              {% else %}
+                Generation {{ generation }}
+              {% endif %}
+            </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {% for member in family.members.all %}
-          <div class="border border-gray-200 rounded p-4">
-            <h5 class="font-semibold mb-1">{{ member.display_name|default:member.user.username }}</h5>
-            <p class="text-gray-600 mb-2">User: {{ member.user.username }}</p>
+            {% for member in members %}
+              <div class="member-card" 
+                   data-member-id="{{ member.id }}"
+                   data-member-name="{{ member.display_name|default:member.user.username }}"
+                   data-generation="{{ generation }}"
+                   data-parents="{% for parent in member.parents.all %}{{ parent.id }},{% endfor %}"
+                   data-spouses="{% for spouse in member.spouses.all %}{{ spouse.id }},{% endfor %}"
+                   onclick="openModal('member-{{ member.id }}')">
+                
+                <div class="member-avatar avatar-other">
+                  {{ member.display_name|default:member.user.first_name|default:member.user.username|first|upper }}
+                </div>
 
-            {% if member.parents.all %}
-              <p class="mb-1"><strong>Parents:</strong> {{ member.parents.all|join:", " }}</p>
-            {% endif %}
-            {% if member.spouses.all %}
-              <p class="mb-1"><strong>Spouses:</strong> {{ member.spouses.all|join:", " }}</p>
-            {% endif %}
-            {% if member.birth_date %}
-              <p class="mb-0"><strong>Born:</strong> {{ member.birth_date }}</p>
-            {% endif %}
-          </div>
-        {% empty %}
-          <div class="col-span-full">
-            <p class="text-gray-500">No members have been added to this family yet.</p>
+                <div class="member-name" title="{{ member.display_name|default:member.user.username }}">
+                  {{ member.display_name|default:member.user.username|truncatewords:2 }}
+                </div>
+                <div class="member-username">@{{ member.user.username }}</div>
+
+                <div class="member-info">
+                  {% if member.birth_date %}
+                    <div class="info-item">
+                      <span class="info-label">📅</span>
+                      <span class="info-value">{{ member.birth_date|date:"Y" }}</span>
+                    </div>
+                  {% endif %}
+
+                  {% if member.parents.all %}
+                    <div class="info-item">
+                      <span class="info-label">👨‍👩:</span>
+                      <span class="info-value">{{ member.parents.count }}</span>
+                    </div>
+                  {% endif %}
+
+                  {% if member.spouses.all %}
+                    <div class="info-item">
+                      <span class="info-label">💑:</span>
+                      <span class="info-value">{{ member.spouses.count }}</span>
+                    </div>
+                  {% endif %}
+
+                  {% if member.children.all %}
+                    <div class="info-item">
+                      <span class="info-label">👶:</span>
+                      <span class="info-value">{{ member.children.count }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="member-relationships">
+                  {% if member.parents.all %}
+                    <span class="rel-badge">👨‍👩</span>
+                  {% endif %}
+                  {% if member.spouses.all %}
+                    <span class="rel-badge">💑</span>
+                  {% endif %}
+                </div>
+
+                <div class="member-actions">
+                  <button class="action-btn" onclick="event.stopPropagation(); openModal('member-{{ member.id }}')">View</button>
+                </div>
+              </div>
+
+              <!-- Member Detail Modal -->
+              <div id="member-{{ member.id }}" class="modal" onclick="closeModalOnBg(event)">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2 class="modal-title">{{ member.display_name|default:member.user.username }}</h2>
+                    <button class="modal-close" onclick="closeModal('member-{{ member.id }}')">&times;</button>
+                  </div>
+
+                  <div class="modal-body">
+                    <div>
+                      <div class="modal-avatar-circle avatar-other">
+                        {{ member.display_name|default:member.user.first_name|default:member.user.username|first|upper }}
+                      </div>
+                    </div>
+
+                    <div class="modal-info">
+                      <div class="modal-info-section">
+                        <div class="modal-info-title">Personal Info</div>
+                        <div class="modal-info-item">
+                          <span class="modal-info-label">Username:</span>
+                          <span class="modal-info-value">{{ member.user.username }}</span>
+                        </div>
+                        {% if member.user.email %}
+                          <div class="modal-info-item">
+                            <span class="modal-info-label">Email:</span>
+                            <span class="modal-info-value">{{ member.user.email }}</span>
+                          </div>
+                        {% endif %}
+                        {% if member.birth_date %}
+                          <div class="modal-info-item">
+                            <span class="modal-info-label">Born:</span>
+                            <span class="modal-info-value">{{ member.birth_date }}</span>
+                          </div>
+                        {% endif %}
+                        {% if member.notes %}
+                          <div class="modal-info-item">
+                            <span class="modal-info-label">Notes:</span>
+                            <span class="modal-info-value">{{ member.notes }}</span>
+                          </div>
+                        {% endif %}
+                      </div>
+
+                      {% if member.parents.all or member.spouses.all or member.children.all %}
+                        <div class="modal-info-section">
+                          <div class="modal-info-title">Relationships</div>
+                          <div class="relationships-list">
+                            {% if member.parents.all %}
+                              {% for parent in member.parents.all %}
+                                <div class="relationship-item">
+                                  <span class="relationship-type">👨‍👩 Parent:</span>
+                                  <span class="relationship-name">{{ parent.display_name|default:parent.user.username }}</span>
+                                </div>
+                              {% endfor %}
+                            {% endif %}
+
+                            {% if member.spouses.all %}
+                              {% for spouse in member.spouses.all %}
+                                <div class="relationship-item">
+                                  <span class="relationship-type">💑 Spouse:</span>
+                                  <span class="relationship-name">{{ spouse.display_name|default:spouse.user.username }}</span>
+                                </div>
+                              {% endfor %}
+                            {% endif %}
+
+                            {% if member.children.all %}
+                              {% for child in member.children.all %}
+                                <div class="relationship-item">
+                                  <span class="relationship-type">👶 Child:</span>
+                                  <span class="relationship-name">{{ child.display_name|default:child.user.username }}</span>
+                                </div>
+                              {% endfor %}
+                            {% endif %}
+                          </div>
+                        </div>
+                      {% endif %}
+
+                      {% if member.families.all %}
+                        <div class="modal-info-section">
+                          <div class="modal-info-title">Family Groups</div>
+                          <div class="relationships-list">
+                            {% for family in member.families.all %}
+                              <div class="relationship-item">
+                                {{ family.name }}
+                              </div>
+                            {% endfor %}
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
           </div>
         {% endfor %}
       </div>
-    </section>
-  {% empty %}
-    <p class="text-gray-500">No family groups created yet.</p>
-  {% endfor %}
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        drawFamilyTreeConnections();
+      });
+    </script>
+  {% else %}
+    <div class="no-data">
+      <p>No family members added yet. Start by adding family members to the database!</p>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+  }
+
+  function closeModalOnBg(event) {
+    if (event.target.classList.contains('modal')) {
+      closeModal(event.target.id);
+    }
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      const activeModal = document.querySelector('.modal.active');
+      if (activeModal) {
+        closeModal(activeModal.id);
+      }
+    }
+  });
+
+  function drawFamilyTreeConnections() {
+    const container = document.getElementById('tree-container');
+    const svg = document.getElementById('tree-svg');
+    const layout = document.getElementById('generations-layout');
+
+    if (!container || !svg || !layout) return;
+
+    // Get all member cards
+    const cards = layout.querySelectorAll('.member-card');
+    const cardMap = new Map();
+
+    // Build a map of member IDs to cards
+    cards.forEach(card => {
+      cardMap.set(parseInt(card.dataset.memberId), card);
+    });
+
+    // Draw connections
+    cards.forEach(card => {
+      const memberId = parseInt(card.dataset.memberId);
+      
+      // Draw parent-child connections
+      const parentIds = card.dataset.parents.split(',').filter(id => id);
+      parentIds.forEach(parentId => {
+        const parentCard = cardMap.get(parseInt(parentId));
+        if (parentCard) {
+          drawLine(parentCard, card, svg, 'parent-child');
+        }
+      });
+
+      // Draw spouse connections (only from lower ID to avoid duplicates)
+      const spouseIds = card.dataset.spouses.split(',').filter(id => id);
+      spouseIds.forEach(spouseId => {
+        const spouseIdNum = parseInt(spouseId);
+        // Only draw if this member ID is less than spouse ID (avoid duplicate lines)
+        if (memberId < spouseIdNum) {
+          const spouseCard = cardMap.get(spouseIdNum);
+          if (spouseCard) {
+            drawLine(card, spouseCard, svg, 'spouse');
+          }
+        }
+      });
+    });
+
+    fitSvgToContainer(svg, container);
+  }
+
+  function drawLine(fromCard, toCard, svg, type) {
+    const fromRect = fromCard.getBoundingClientRect();
+    const toRect = toCard.getBoundingClientRect();
+    const containerRect = fromCard.closest('.generations-layout').getBoundingClientRect();
+
+    // Calculate positions relative to container
+    const fromX = fromRect.left - containerRect.left + fromRect.width / 2;
+    const fromY = fromRect.top - containerRect.top + fromRect.height / 2;
+    const toX = toRect.left - containerRect.left + toRect.width / 2;
+    const toY = toRect.top - containerRect.top + toRect.height / 2;
+
+    // Create SVG path
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    if (type === 'parent-child') {
+      // Vertical curve for parent-child
+      const midY = (fromY + toY) / 2;
+      path.setAttribute('d', `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`);
+      path.setAttribute('stroke', '#3b82f6');
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('opacity', '0.7');
+    } else {
+      // Horizontal dashed line for spouse
+      const midY = (fromY + toY) / 2;
+      path.setAttribute('d', `M ${fromX} ${fromY} C ${(fromX + toX) / 2} ${midY}, ${(fromX + toX) / 2} ${midY}, ${toX} ${toY}`);
+      path.setAttribute('stroke', '#ec4899');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-dasharray', '6,4');
+      path.setAttribute('opacity', '0.8');
+    }
+
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+  }
+
+  function fitSvgToContainer(svg, container) {
+    const layout = container.querySelector('.generations-layout');
+    if (!layout) return;
+
+    const scrollWidth = Math.max(layout.scrollWidth, layout.offsetWidth);
+    const scrollHeight = Math.max(layout.scrollHeight, layout.offsetHeight);
+
+    svg.setAttribute('width', scrollWidth);
+    svg.setAttribute('height', scrollHeight);
+    svg.setAttribute('viewBox', `0 0 ${scrollWidth} ${scrollHeight}`);
+  }
+
+  window.addEventListener('resize', drawFamilyTreeConnections);
+</script>
 {% endblock %}

@@ -24,6 +24,8 @@ class FamilyMember(models.Model):
     spouses = models.ManyToManyField("self", symmetrical=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
+    generation = models.IntegerField(default=0, help_text="Generation level (0 = oldest ancestors, higher numbers = descendants)")
+    display_order = models.IntegerField(default=0, help_text="Position within the generation; lower values appear first.")
 
     def __str__(self):
         return self.display_name or self.user.get_full_name() or self.user.username

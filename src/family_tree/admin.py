@@ -8,7 +8,9 @@ class FamilyGroupAdmin(admin.ModelAdmin):
 
 @admin.register(FamilyMember)
 class FamilyMemberAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "user")
+    list_display = ("display_name", "user", "generation", "display_order")
     search_fields = ("display_name", "user__username", "user__email")
     filter_horizontal = ("families", "parents", "spouses")
     raw_id_fields = ("user",)
+    list_editable = ("generation", "display_order")
+    list_editable = ("generation",)
