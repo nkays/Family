@@ -35,4 +35,4 @@ jobs:
 
       - name: Run Django tests
         run: |
-          uv run python manage.py test
+          uv run python src/manage.py test
