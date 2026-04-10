@@ -25,12 +25,47 @@ REPO_DIR = BASE_DIR.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fi_imhr1p8gb51-l__^=c)zk(n$gs*hzih5-w#aatahxd*fq$='
+SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str, default="")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DJANGO_DEBUG", cast=bool, default =False)
 
-ALLOWED_HOSTS = []
+PROJECT_NAME = config("PROJECT_NAME", default="Unset Project Name")
+
+ALLOWED_HOSTS = [
+    #...
+    ".railway.app"
+    ".buzzardbuilds.com",
+    #...
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.railway.app",
+]
+# HTTPS
+CSRF_COOKIE_SECURE=not DEBUG
+SESSION_COOKIE_SECURE=not DEBUG
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
+
+RAILWAY_HOSTS = [
+    "healthcheck.railway.app",
+    ".railway.internal",
+    ".up.railway.app",
+    "partpicker.railway.internal",
+]
+
+for host in RAILWAY_HOSTS:
+    ALLOWED_HOSTS.append(host)
+    for protocol in ["http","https"]:
+        if host.startswith("."):
+            CSRF_TRUSTED_ORIGINS.append(f"{protocol}://*{host}")
+        else:
+            CSRF_TRUSTED_ORIGINS.append(f"{protocol}://{host}")
 
 
 # Application definition
