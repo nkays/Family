@@ -120,28 +120,29 @@ WSGI_APPLICATION = 'family.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'FAMILY',
-        'USER': 'nelson',
-        'PASSWORD': 'GodIsGood',
-        'HOST': 'localhost',          # works perfectly in WSL
-        'PORT': '5432',
-    }
-}
-
 DATABASE_URL = config("DATABASE_URL", cast=str, default="")
+
 if DATABASE_URL:
+    # Production: Use DATABASE_URL from environment
     import dj_database_url
-    if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith(
-        "postgresql://"
-    ):
-        DATABASES = {
-            "default": dj_database_url.config(
-                default=DATABASE_URL,
-            )
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+        )
+    }
+else:
+    # Development: Use local PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'FAMILY',
+            'USER': 'nelson',
+            'PASSWORD': 'GodIsGood',
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
+    }
 
 
 # Password validation
