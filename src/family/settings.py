@@ -183,6 +183,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_DIRS = [BASE_DIR / "theme" / "static_src"]
 
 # Ensure static files directory exists
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
