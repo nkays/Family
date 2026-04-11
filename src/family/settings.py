@@ -184,10 +184,16 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Ensure static files directory exists
+STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+
 TAILWIND_APP_NAME = 'theme'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Ensure media directory exists
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
