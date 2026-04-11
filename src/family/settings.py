@@ -82,8 +82,9 @@ INSTALLED_APPS = [
     'tailwind',
     'theme',
     #our_apps:
-    'recipes',
+    'commando',
     'family_tree',
+    'recipes',
 ]
 
 MIDDLEWARE = [
