@@ -30,6 +30,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str, default="")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DJANGO_DEBUG", cast=bool, default =False)
+print(f"DEBUG: {DEBUG}")
 
 PROJECT_NAME = config("PROJECT_NAME", default="Unset Project Name")
 
@@ -183,7 +184,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-STATICFILES_DIRS = [BASE_DIR / "theme" / "static_src" / "src"]
+print(f"STATICFILES_STORAGE: {STATICFILES_STORAGE}")
 
 # Ensure static files directory exists
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
