@@ -1,6 +1,6 @@
 local-cdn/
 
-src/static_root
+
 src/static_root
 src/staticfiles/admin
 src/staticfiles/summernote
