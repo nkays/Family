@@ -38,6 +38,7 @@ ALLOWED_HOSTS = [
     #...
     ".railway.app"
     ".buzzardbuilds.com",
+    "http://127.0.0.1:8000/"
     #...
 ]
 
@@ -191,12 +192,6 @@ STATICFILES_DIRS = [
     BASE_DIR / "staticfiles"
 ]
 
-STORAGES = {
-    # ...
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
 
 
 # Ensure static files directory exists
@@ -215,3 +210,16 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": MEDIA_ROOT,
+            "base_url": MEDIA_URL,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
