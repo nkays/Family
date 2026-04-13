@@ -201,7 +201,9 @@ STORAGES = {
 
 # Ensure static files directory exists
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
-
+for directory in STATICFILES_DIRS:
+    directory.mkdir(parents=True, exist_ok=True)
+    
 TAILWIND_APP_NAME = 'theme'
 
 MEDIA_URL = "/media/"
