@@ -79,7 +79,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     #third-party apps:
-    "whitenoise.runserver_nostatic",
     'tailwind',
     'theme',
     #our_apps:
@@ -87,6 +86,11 @@ INSTALLED_APPS = [
     'family_tree',
     'recipes',
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append(
+        "whitenoise.runserver_nostatic"
+    )
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -182,9 +186,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-print(f"STATICFILES_STORAGE: {STATICFILES_STORAGE}")
+STATIC_ROOT = BASE_DIR / "static_root"
+STATICFILES_DIRS = [
+    BASE_DIR / "staticfiles"
+]
+
+STORAGES = {
+    # ...
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 # Ensure static files directory exists
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)

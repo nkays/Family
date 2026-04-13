@@ -12,10 +12,11 @@ dependencies = [
     "gunicorn>=25.1.0",
     "dj-database-url",
     "psycopg[binary]",
-    "whitenoise",
+    "whitenoise[brotli]",
     "django-polymorphic",
     "Pillow",
     'django-summernote',
     'django-tailwind[reload]',
     'Cookiecutter',
+
 ]
